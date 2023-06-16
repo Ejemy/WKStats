@@ -1,0 +1,17 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title My Web Page
+    link(rel="stylesheet", href="login.css")
+  body
+    h1 Type in your API TOKEN
+    #token-form.formwrapper
+      form(action="/login", method="post" id="form")
+          label(for="id") API Token:
+          input(type="text", id="token", name="token", required)
+          button(type="submit") Submit
+      h1=error
+          
+    script(src="/public/js/statistics.js", type="javascript/application")
