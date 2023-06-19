@@ -1,8 +1,3 @@
-const { response } = require("express");
-
-
-
-//'d19deecf-f61e-4f5b-a583-f79445eb041a'
 const auth = (token) => {
     return new Promise((resolve, reject) => {
         var apiToken = token;
@@ -22,7 +17,7 @@ const auth = (token) => {
             if(responseBody.error){
                 throw new Error(responseBody.error);
             } 
-            resolve(responseBody) 
+            resolve(responseBody.data) 
             
         })
         .catch((error) => {

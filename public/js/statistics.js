@@ -1,13 +1,15 @@
 
 
+//'d19deecf-f61e-4f5b-a583-f79445eb041a'
 var today = new Date();
-var day = today.getDate() -1;
+var day = today.getDate() -7;
 var month = today.getMonth();
 var year = today.getFullYear();
 console.log(year, month, day)
 var yes = new Date(year, month, day).toISOString()
 console.log(yes)
-var apiToken = 'd19deecf-f61e-4f5b-a583-f79445eb041a';
+var tokenDiv = document.getElementById("tokenkey");
+var apiToken = tokenDiv.innerText;
 var apiEndpointPath = 'review_statistics?updated_after=' + yes;
 var requestHeaders =
 new Headers({
@@ -23,14 +25,31 @@ fetch(apiEndpoint)
 .then(response => response.json())
 .then((responseBody) => {
     const datum = responseBody.data;
-    datum.forEach((data) => {
-    const svg = d3.select("body").append("svg").attr("height", 500).attr("width", 500).style("fill", "blue")
+    let wkdata = []
+    for(var i in datum){
+        wkdata[i] = [];
+        for(var j in datum[i]){
+            wkdata[i].push(datum[i][j])
+        }
+        wkdata.push(datum[i].data)
+    }
+    console.log(wkdata)
+    const svg = d3
+    .select("body")
+    .append("svg")
+    .attr("height", 500)
+    .attr("width", 500)
+    .style("box-shadow", "1px 5px 10px black");
     svg
-    .selectall("rect")
-    .data(data.id)
+    .selectAll("rect")
+    .data(wkdata)
     .enter()
-    .attr("x", (d)=> d+1)
-    })
-});
+    .attr("width", 3)
+    .attr("height", 3)
+    .attr("x", (d, i)=> i+3)
+    .attr("y", 0)
+    .style("fill", "blue")
+})
+
 
 

@@ -5,21 +5,20 @@ const path = require("path");
 const auth = require("./public/js/authenticate.js")
 
 app.set('view engine', 'pug');
-app.use(express.static(path.join(__dirname, "public")))
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
-//app.use(express.static('public'));
 app.get("/", (req,res)=>{
     res.render("login", {error: ""})
 })
 
 app.post("/login", async (req,res) => {
     try{
-        const authCheck = await auth(req.body.token)
-        console.log(authCheck)
-        return res.redirect("/home")
+        const authen = await auth(req.body.token)
+        var user = encodeURIComponent(authen.username)
+        return res.redirect("/user?user=" + user + "&token=" + req.body.token)
     }
     catch(error){
         console.log(error)
@@ -27,8 +26,8 @@ app.post("/login", async (req,res) => {
     }
 })
 
-app.get('/home', (req, res) => { 
-    res.render("main", {title: "You"})
+app.get('/user' , (req, res) => {
+    res.render("main", {title: req.query.user, token: req.query.token})
 })
 
 app.listen(port, ()=> {
