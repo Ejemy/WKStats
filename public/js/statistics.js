@@ -9,7 +9,7 @@ var yes = new Date(year, month, day).toISOString()
 console.log(yes)
 var tokenDiv = document.getElementById("tokenkey");
 var apiToken = tokenDiv.innerText;
-var apiEndpointPath1 = "assignments";
+var apiEndpointPath1 = "assignments?subject_type=kanji?started=true";
 var requestHeaders =
 new Headers({
     Authorization: 'Bearer ' + apiToken,
@@ -19,41 +19,68 @@ new Request('https://api.wanikani.com/v2/' + apiEndpointPath1, {
     method: 'GET',
     headers: requestHeaders
 });
-var apiEndpointPath2 = "review_statistics";
-var requestHeaders =
-new Headers({
-    Authorization: 'Bearer ' + apiToken,
-});
+var apiEndpointPath2 = "review_statistics?subject_types=kanji";
 var apiEndpoint2 =
 new Request('https://api.wanikani.com/v2/' + apiEndpointPath2, {
     method: 'GET',
     headers: requestHeaders
 });
+var apiEndpointPath3 = "subjects?types=kanji";
+
+var apiEndpoint3 =
+new Request('https://api.wanikani.com/v2/' + apiEndpointPath3, {
+    method: 'GET',
+    headers: requestHeaders
+});
+
+
 const assignments = fetch(apiEndpoint1)
 .then(response => response.json());
-const subjects = fetch(apiEndpoint2)
+const review_statistics = fetch(apiEndpoint2)
+.then(response => response.json());
+const subjects = fetch(apiEndpoint3)
 .then(response => response.json());
 
 
-Promise.all([assignments, subjects])
-.then(([data1, data2]) => {
-    combinedData = [];
-    for(var i in data1.data){
-        combinedData[i] = {}
-        for(var j in data2.data){
-            if(data1.data[i].data.subject_id == data2.data[j].data.subject_id){
-                combinedData[i].subject_id = data1.data[i].data.subject_id;
-                combinedData[i].burned_at = data1.data[i].data.burned_at;
-                combinedData[i].subject_type = data1.data[i].data.subject_type;
-                combinedData[i].percentage_correct = data2.data[j].data.percentage_correct;
-            }
+Promise.all([assignments, review_statistics, subjects])
+.then(([assignData, reviewData, subjectData]) => {
+    console.log("data1", assignData)
+    console.log("data2", reviewData)
+    console.log("data3", subjectData)
+    var combinedData = [];
+
+
+    for(var i in assignData.data){
+        var tempObj = {};
+        tempObj.id = assignData.data[i].data.subject_id;
+        var tempsubject = subjectData.data.find(val=>
+            val.id == tempObj.id
+        )
+        var tempreview = reviewData.data.find(val =>
+            val.data.subject_id == tempObj.id 
+        )
+        if(tempsubject){
+            tempObj.kanji = tempsubject.data.characters
+            tempObj.level = tempsubject.data.level
+        } else{
+            continue;
         }
+        if(tempreview){
+            tempObj.percentage_correct = tempreview.data.percentage_correct;
+        }
+        if(assignData.data[i].data.burned_at){
+            tempObj.burned = "BURNED"
+        } else {
+            tempObj.burned = "Not burned yet."
+        }
+        combinedData.push(tempObj);
+
     }
+    combinedData.sort((a,b) => {
+        return a.level - b.level
+    })
     
-  
     
-    
-    console.log(combinedData)
 
     const w = 80;
     const h = 40;
@@ -73,11 +100,15 @@ Promise.all([assignments, subjects])
     .append("svg")
     .attr("height", h + padding + "vh")
     .attr("width", w + padding + "vw")
-    .style("box-shadow", "1px 5px 10px black");
+    .style("box-shadow", "1px 5px 10px black")
+    .attr("class", "canvas")
     
-    
-    //var root = d3.hierarchy(wkdata).sum((d) => d.data);
-    //d3.treemap().size([w, h]).padding(2)(root);
+    const tooltip = d3
+    .select("body")
+    .append("div")
+    .attr("class", "tooltip");
+
+
     const yMax = d3.max(combinedData, d => d.percentage_correct)
     const yMin = d3.min(combinedData, d => d.percentage_correct)
     const xScale = d3
@@ -86,7 +117,7 @@ Promise.all([assignments, subjects])
     .range([padding + "vw", w - padding + "vw"]);
     const yScale = d3
     .scaleLinear()
-    .domain([yMin, yMax])
+    .domain([0, yMax])
     .range([h - padding, padding])
     
     svg
@@ -94,17 +125,31 @@ Promise.all([assignments, subjects])
     .data(combinedData)
     .enter()
     .append("rect")
-    .attr("width", 3)
+    .attr("width", 5)
     .attr("height", (d,i)=> h - yScale(d.percentage_correct) - padding + "vh")
     .attr("x", (d, i)=> xScale(i))
     .attr("y", d => yScale(d.percentage_correct) +  "vh")
     .style("fill", function(d){
-        if(d.burned_at == null){
-            return "red"
+        if(d.burned == "Not burned yet."){
+            return "blue";
         } else {
-            return "blue"
+            return "red"
         }
     })
+    .attr("class", "bar")
+
+    .on("mouseover", (d, i) => {
+        tooltip
+          .attr("percentage", d.percentage_correct)
+          .html("Percentage correct = " + d.percentage_correct + "</br>Kanji = " + d.kanji + "</br>Level = " + d.level)
+          .transition()
+          .duration(200)
+          .style("opacity", 1);
+        
+      })
+      .on("mouseout", () => {
+        tooltip.transition().duration(200).style("opacity", 0);
+      });
 })
 
 

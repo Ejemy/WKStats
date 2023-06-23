@@ -1,3 +1,31 @@
-.title{
-    color: pink;
+body {
+    margin: auto;
+    text-align: center;
+
 }
+
+.tooltip {
+    margin: auto;
+    background-color: white;
+    text-align: center;
+    width: 200px;
+    padding: 5px;
+    border: 1px solid black;
+    border-radius: 20px;
+    pointer-events: none;
+    color: black;
+    opacity: 0;
+    z-index: 500;
+  }
+
+
+  .bar:hover {
+    border: black 1px solid;
+    opacity: 0.5;
+  }
+
+
+  .canvas {
+    margin: auto;
+
+  }
