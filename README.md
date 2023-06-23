@@ -10,4 +10,4 @@ Utilizing Wanikani API to view statistics on my Kanji learning journey!
 - Pug
 - D3
 
-### View at https://wkstats.ejemy1.repl.co/
+### View at https://wanikanistats.ejemy1.repl.co
